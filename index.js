@@ -1,25 +1,47 @@
-const express = require('express')
-const app = express()
+const express = require("express");
+const cors = require("cors");
 
-app.use(express.json())
-app.use(express.urlencoded({extended: true}))
+const app = express();
 
-const Sequelize = require('sequelize')
-const sequelize = new Sequelize('mysql://root:qwerty@localhost:3306/api_mobile_app')
+var corsOptions = {
+    origin: "http://localhost:8081"
+};
 
-sequelize
-    .authenticate()
-    .then(() => {
-        console.log('conected to db')
-    })
-    .catch((err) => {
-        console.log('unable connect to db ', err)
-    })
+app.use(cors(corsOptions));
 
+// parse requests of content-type - application/json
+app.use(express.json());
+
+// parse requests of content-type - application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true }));
+
+const db = require("./models");
+const Role = db.role;
+
+db.sequelize.sync({force: true}).then(() => {
+    console.log('Drop and Resync Db');
+    initial();
+});
+
+// simple route
 app.get("/", (req, res) => {
-    res.json({mes: 'app is started'})
-})
+    res.json({ message: "Welcome to bezkoder application." });
+});
 
-app.listen(3051, () => {
-    console.log('server is running')
-})
+// set port, listen for requests
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}.`);
+});
+
+function initial() {
+    Role.create({
+        id: 1,
+        name: "User"
+    });
+
+    Role.create({
+        id: 2,
+        name: "Admin"
+    });
+}
